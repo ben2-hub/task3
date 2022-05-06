@@ -17,6 +17,56 @@ struct proc_mode_list *UNUSED_list;
 // function needed to add 
 // remove first (CPU + ZOMBIE_list SLEEPING_list UNUSED_list)
 // add last (CUP + ZOMBIE_list SLEEPING_list UNUSED_list)
+// renove -> when status of process is chenging 
+// found index -> to find the index of the process in the list 
+int 
+foundIndex(proc_mode_list** head, int pid){
+    if(head == NULL || *head == NULL) 
+      return -1;
+    
+    int ret = 0;
+    proc_mode_list* temp = *head_ref;
+
+    while (temp->pid != pid && temp->next != NULL)
+    {
+      temp = temp->next;
+      ret += 1;
+    }
+
+    return (temp->pid == pid) ? ret : -1;
+}
+
+
+void 
+deleteNode(proc_mode_list** head, int index){
+  // If linked list is empty
+    if (index == -1)
+        return;
+ 
+    // Store head node
+    Node* temp = *head_ref;
+ 
+    // If head needs to be removed
+    if (index == 0) {
+        *head_ref = temp->next;
+        free(temp);
+        return;
+    }
+ 
+    // Find previous node of the node to be deleted
+    for (int i = 0; temp != NULL && i < index - 1; i++)
+        temp = temp->next;
+        
+    // Node temp->next is the node to be deleted
+    // Store pointer to the next of node to be deleted
+    Node* next = temp->next->next;
+ 
+    // Unlink the node from linked list
+    free(temp->next); // Free memory
+ 
+    // Unlink the deleted node from list
+    temp->next = next;
+}
 void 
 removeFirst(struct proc_mode_list **head) {
   struct proc_mode_list *tmp;

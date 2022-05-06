@@ -20,7 +20,8 @@ struct context {
 
 // Per-CPU state.
 struct cpu {
-  struct proc *proc;          // The process running on this cpu, or null.
+  struct proc *proc;          // The process running on this cpu, or null`
+  struct proc *head;
   struct context context;     // swtch() here to enter scheduler().
   int noff;                   // Depth of push_off() nesting.
   int intena;                 // Were interrupts enabled before push_off()?
@@ -85,6 +86,8 @@ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // Per-process state
 struct proc {
   struct spinlock lock;
+  // next pointer in LL
+  struct proc *next;
 
   // p->lock must be held when using these:
   enum procstate state;        // Process state
