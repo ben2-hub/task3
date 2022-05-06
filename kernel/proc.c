@@ -6,6 +6,60 @@
 #include "proc.h"
 #include "defs.h"
 
+struct proc_mode_list {
+  struct proc *curr;
+  struct proc *next;
+};
+
+struct proc_mode_list *ZOMBIE_list;
+struct proc_mode_list *SLEEPING_list;
+struct proc_mode_list *UNUSED_list;
+// function needed to add 
+// remove first (CPU + ZOMBIE_list SLEEPING_list UNUSED_list)
+// add last (CUP + ZOMBIE_list SLEEPING_list UNUSED_list)
+void 
+removeFirst(struct proc_mode_list **head) {
+  struct proc_mode_list *tmp;
+
+  /*Linked list does not exist or the list is empty*/
+  if(head == NULL || *head == NULL) return;
+  
+  /*Storing the head to a temporary variable*/
+  tmp = *head;
+  
+  /*Moving head to the next node*/
+  *head = (*head)->next;
+  
+  /*Deleting the first node*/
+  free(tmp);
+}
+
+void 
+addLast(struct proc_mode_list **head, proc val){
+    //create a new node
+    struct proc_mode_list *newNode = malloc(sizeof(struct proc_mode_list));
+    newNode->curr = val;
+    newNode->next = NULL;
+
+    //if head is NULL, it is an empty list
+    if(*head == NULL)
+         *head = newNode;
+    //Otherwise, find the last node and add the newNode
+    else
+    {
+        struct proc_mode_list *lastNode = *head;
+
+        //last node's next address will be NULL.
+        while(lastNode->next != NULL)
+        {
+            lastNode = lastNode->next;
+        }
+
+        //add the newNode at the end of the linked list
+        lastNode->next = newNode;
+    }
+}
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -13,10 +67,10 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
-int ben = 0;
 struct spinlock pid_lock;
 
 extern void forkret(void);
+extern uint64 cas(volatile void * addr, int expected, int newval)
 static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
@@ -90,11 +144,10 @@ myproc(void) {
 int
 allocpid() {
   int pid;
-  
-  acquire(&pid_lock);
-  pid = nextpid;
-  nextpid = nextpid + 1;
-  release(&pid_lock);
+  do{
+    pid = nextpid;
+
+  }while(cas(&nextpid, pid, pid+1))
 
   return pid;
 }
